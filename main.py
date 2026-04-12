@@ -1,5 +1,7 @@
 from node import *
 from dfs_visit import DFS_visit
+import graph_ops as ops
+import vals as dbg
 
 def main():
     a1 = Node("A1", 0, 0)
@@ -13,19 +15,24 @@ def main():
     c3 = Node("C3", 0, 0)
 
     a1.connect(a2)
-    a2.connect(a3)
+    a2.connect(a3, b3)
     a3.connect(a1)
 
     b1.connect(b2)
-    b2.connect(b3, c3)
-    b3.connect(b1, a2)
+    b2.connect(b3)
+    b3.connect(b1)
 
     c1.connect(c2)
     c2.connect(c3)
-    c3.connect(c1)
+    c3.connect(c1, b2)
 
-    print(DFS_visit(a1,a2,a3,b1,b2,b3,c1,c2,c3).name)
+    g = [a1, a2, a3, b1, b2, b3, c1, c2, c3]
+    gi = ops.invert(g)
 
+    if(dbg.debug):
+        print(f"{DFS_visit(gi).name} está em um componente sink")
+
+    gp = ops.minus(g, gm)
 
 
 

@@ -1,6 +1,6 @@
 class Node:
     def __init__(self, name: str, x: float, y: float):
-        self.name = name
+        self.name = name # Nome 
         self.x = x # Posição em X
         self.y = y # Posição em Y
         self.neighbors = [] # arestas (vizinhos)
@@ -16,6 +16,9 @@ class Node:
 
     # Imprime a lista de vizinhos por nome
     def print_vizinhos(self) -> None:
+        if(not self.neighbors):
+            print("Vazio")
+            return
         print("[", end="")
 
         for i in range(0,len(self.neighbors)-1):
@@ -23,6 +26,20 @@ class Node:
 
         print(self.neighbors[-1].name, end="")
         print("]")
+    
+    # Compara dois nós
+    def equals(self, node: Node) -> bool:
+        return self.name == node.name and self.x == node.x and self.y == node.y
+
+    def copy_shallow(self) -> Node:
+        c = Node(self.name, self.x, self.y)
+        return c
+    def find_node(node: Node, graph: list[Node]) -> int:
+        for i in range(0, len(graph)):
+            if(node.equals(graph[i])):
+                return i
+        
+        return -1
 
 if __name__ == "__main__":
     print("Rodando o arquivo node.py, você quis dizer main.py?")
