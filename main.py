@@ -32,7 +32,6 @@ def main():
     if(dbg.debug):
         print(f"{DFS_visit(gi).name} está em um componente sink")
 
-    gp = ops.minus(g, gm)
 
 
 
