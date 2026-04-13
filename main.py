@@ -94,7 +94,6 @@ def main():
     # Saída de Resultados
     print("\n--- Arestas sugeridas para conectividade total ---")
     for u, v, d, ab in conexoes_sugeridas:
-        print(ab)
         print(f"Unir {u} {"" if ab[0] else "<"}-{"" if ab[1] else ">"} {v} (Distância: {d:.2f})")
 
 if __name__ == "__main__":
