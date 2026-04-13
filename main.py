@@ -1,34 +1,83 @@
-from node import *
+import math
+from node import Node
 from dfs_visit import DFS_visit
+from bfs import BFS
+import graph_ops as ops
+import vals as dbg
+
+def calcular_distancia(n1, n2):
+    return math.sqrt((n1.x - n2.x)**2 + (n1.y - n2.y)**2)
+
+def carregar_grafo(caminho_arquivo):
+    g = []
+    with open(caminho_arquivo, "r") as file:
+        for line in file:
+            line = line.strip()
+            if not line or line.startswith("#"): continue
+            
+            args = line.split()
+            if len(args) == 3: # Nó: Nome X Y
+                g.append(Node(args[0], float(args[1]), float(args[2])))
+            elif len(args) == 2: # Aresta: Origem Destino
+                ind1 = Node.find_node_by_name(g, args[0])
+                ind2 = Node.find_node_by_name(g, args[1])
+                if ind1 != -1 and ind2 != -1:
+                    g[ind1].connect(g[ind2])
+    return g
 
 def main():
-    a1 = Node("A1", 0, 0)
-    a2 = Node("A2", 0, 0)
-    a3 = Node("A3", 0, 0)
-    b1 = Node("B1", 0, 0)
-    b2 = Node("B2", 0, 0)
-    b3 = Node("B3", 0, 0)
-    c1 = Node("C1", 0, 0)
-    c2 = Node("C2", 0, 0)
-    c3 = Node("C3", 0, 0)
+    # Carrega o grafo original
+    grafo_original = carregar_grafo("in.txt")
+    g_trabalho = ops.copy_graph(grafo_original)
+    
+    # Identifica os SCCs 
+    sccs = []
+    while g_trabalho:
+        gi = ops.inverted(g_trabalho)
+        sni = DFS_visit(gi) 
+        sn = g_trabalho[Node.find_node(g_trabalho, sni)]
+        
+        bfg = BFS(g_trabalho, sn)
+        bfgi = BFS(gi, sni)
+        scc = ops.intersect(bfg, bfgi)
+        
+        sccs.append(scc)
+        g_trabalho = ops.minus(g_trabalho, scc)
 
-    a1.connect(a2)
-    a2.connect(a3)
-    a3.connect(a1)
-
-    b1.connect(b2)
-    b2.connect(b3, c3)
-    b3.connect(b1, a2)
-
-    c1.connect(c2)
-    c2.connect(c3)
-    c3.connect(c1)
-
-    print(DFS_visit(a1,a2,a3,b1,b2,b3,c1,c2,c3).name)
+    print(f"Foram encontrados {len(sccs)} componentes fortemente conexos.")
 
 
+    conexoes_sugeridas = []
+    
+    sccs_ativos = [s for s in sccs] 
 
+    while len(sccs_ativos) > 1:
+        menor_dist = float('inf')
+        par_nós = (None, None)
+        indices_scc = (0, 0)
 
+        for i in range(len(sccs_ativos)):
+            for j in range(i + 1, len(sccs_ativos)):
+                for no_a in sccs_ativos[i]:
+                    for no_b in sccs_ativos[j]:
+                        d = calcular_distancia(no_a, no_b)
+                        if d < menor_dist:
+                            menor_dist = d
+                            par_nós = (no_a, no_b)
+                            indices_scc = (i, j)
+        
+        if par_nós[0]:
+            n1, n2 = par_nós
+            conexoes_sugeridas.append((n1.name, n2.name, menor_dist))
+            # Une os SCCs na lista para a próxima iteração
+            idx1, idx2 = indices_scc
+            sccs_ativos[idx1].extend(sccs_ativos[idx2])
+            sccs_ativos.pop(idx2)
+
+    # Saída de Resultados
+    print("\n--- Arestas sugeridas para conectividade total ---")
+    for u, v, d in conexoes_sugeridas:
+        print(f"Unir {u} e {v} (Distância: {d:.2f})")
 
 if __name__ == "__main__":
     main()
