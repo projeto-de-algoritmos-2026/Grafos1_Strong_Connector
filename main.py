@@ -19,6 +19,7 @@ def carregar_grafo(caminho_arquivo):
             if len(args) == 3: # Nó: Nome X Y
                 g.append(Node(args[0], float(args[1]), float(args[2])))
             elif len(args) == 2: # Aresta: Origem Destino
+                if(args[0] == args[1]): continue # Ignora arestas de um nó à sí mesmo
                 ind1 = Node.find_node_by_name(g, args[0])
                 ind2 = Node.find_node_by_name(g, args[1])
                 if ind1 != -1 and ind2 != -1:
@@ -27,7 +28,7 @@ def carregar_grafo(caminho_arquivo):
 
 def main():
     # Carrega o grafo original
-    grafo_original = carregar_grafo("in.txt")
+    grafo_original = carregar_grafo("teste_sugestao.txt")
     g_trabalho = ops.copy_graph(grafo_original)
     
     # Identifica os SCCs 
@@ -55,6 +56,7 @@ def main():
         menor_dist = float('inf')
         par_nós = (None, None)
         indices_scc = (0, 0)
+        ab_ba = (False, False)
 
         for i in range(len(sccs_ativos)):
             for j in range(i + 1, len(sccs_ativos)):
@@ -66,18 +68,33 @@ def main():
                             par_nós = (no_a, no_b)
                             indices_scc = (i, j)
         
+        # Checa se já existe conexão entre os sccs
+        for n in sccs_ativos[indices_scc[0]]:
+            for neigh in grafo_original[Node.find_node(grafo_original,n)].neighbors:
+                # print(f"{n.name} -> {neigh.name} {Node.find_node(sccs_ativos[indices_scc[1]],neigh) == -1}")
+                if(Node.find_node(sccs_ativos[indices_scc[1]],neigh) != -1):
+                    ab_ba = (True, False)
+                    break
+        if(not ab_ba[0]):
+            for m in sccs_ativos[indices_scc[1]]:
+                for meigh in grafo_original[Node.find_node(grafo_original,m)].neighbors:
+                    if(Node.find_node(sccs_ativos[indices_scc[0]], meigh) != -1):
+                        ab_ba = (False, True)
+                        break
+        
         if par_nós[0]:
             n1, n2 = par_nós
-            conexoes_sugeridas.append((n1.name, n2.name, menor_dist))
+            conexoes_sugeridas.append((n1.name, n2.name, menor_dist, ab_ba))
             # Une os SCCs na lista para a próxima iteração
             idx1, idx2 = indices_scc
-            sccs_ativos[idx1].extend(sccs_ativos[idx2])
+            sccs_ativos[idx1] = ops.dumb_unite(sccs_ativos[idx1], sccs_ativos[idx2])
             sccs_ativos.pop(idx2)
 
     # Saída de Resultados
     print("\n--- Arestas sugeridas para conectividade total ---")
-    for u, v, d in conexoes_sugeridas:
-        print(f"Unir {u} e {v} (Distância: {d:.2f})")
+    for u, v, d, ab in conexoes_sugeridas:
+        print(ab)
+        print(f"Unir {u} {"" if ab[0] else "<"}-{"" if ab[1] else ">"} {v} (Distância: {d:.2f})")
 
 if __name__ == "__main__":
     main()
