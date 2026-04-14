@@ -43,7 +43,7 @@ Certifique-se de ter o Python instalado. Em seguida, instale as dependências de
 
 Comando para rodar:
 
-`python gui_refinada.py`
+`python gui.py`
 
 ## Uso 
 
